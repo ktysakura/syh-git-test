@@ -10,7 +10,7 @@ class CMutexLock
 {
 public:
 	int lock();
-	int unlock();
+    int unlock();
 	
 	CMutexLock();
 	virtual ~CMutexLock();

@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28307.489
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "superlib", "test\superlib.vcxproj", "{BC51CD63-59B4-4DD7-A006-62ECC7415771}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "superlib", "vcproj\superlib.vcxproj", "{BC51CD63-59B4-4DD7-A006-62ECC7415771}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test", "test\test\test.vcxproj", "{B037BD6F-215F-4675-B7F1-D8656A480FAC}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test", "test\test.vcxproj", "{B037BD6F-215F-4675-B7F1-D8656A480FAC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
