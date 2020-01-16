@@ -1,6 +1,7 @@
 #include "Thread.h"
 #include <process.h>
 
+BEGIN_NAMESPACE
 
 static DWORD current_thread_data_tls_index = TLS_OUT_OF_INDEXES;
 
@@ -32,7 +33,7 @@ unsigned int __stdcall CThread::on_thread_start(void *arg)
 CThread::CThread()
 	:m_running(false), m_isInFinish(false), m_finished(false),
 	m_exited(false), m_returnCode(-1), m_stackSize(0), 
-	m_priority(CThread::InheritPriority)
+	m_waitThread(false), m_priority(CThread::InheritPriority)
 {
 
 
@@ -47,7 +48,7 @@ CThread::~CThread()
 		locker.relock();
 	}
 
-	if (m_running && !m_finished){
+	if (m_running && !m_finished) {
 		printf("CThread: Destroyed while thread is still running");
 	}
 }
@@ -88,43 +89,33 @@ void CThread::start(Priority priority)
 		return;
 	}
 
-	
-
 	int prio;
-
 	switch (m_priority) {
 	case IdlePriority:
-	prio = THREAD_PRIORITY_IDLE;
-	break;
-
+		prio = THREAD_PRIORITY_IDLE;
+		break;
 	case LowestPriority:
-	prio = THREAD_PRIORITY_LOWEST;
-	break;
-
+		prio = THREAD_PRIORITY_LOWEST;
+		break;
 	case LowPriority:
-	prio = THREAD_PRIORITY_BELOW_NORMAL;
-	break;
-
+		prio = THREAD_PRIORITY_BELOW_NORMAL;
+		break;
 	case NormalPriority:
-	prio = THREAD_PRIORITY_NORMAL;
-	break;
-
+		prio = THREAD_PRIORITY_NORMAL;
+		break;
 	case HighPriority:
-	prio = THREAD_PRIORITY_ABOVE_NORMAL;
-	break;
-
+		prio = THREAD_PRIORITY_ABOVE_NORMAL;
+		break;
 	case HighestPriority:
-	prio = THREAD_PRIORITY_HIGHEST;
-	break;
-
+		prio = THREAD_PRIORITY_HIGHEST;
+		break;
 	case TimeCriticalPriority:
-	prio = THREAD_PRIORITY_TIME_CRITICAL;
-	break;
-
+		prio = THREAD_PRIORITY_TIME_CRITICAL;
+		break;
 	case InheritPriority:
 	default:
-	prio = GetThreadPriority(GetCurrentThread());
-	break;
+		prio = GetThreadPriority(GetCurrentThread());
+		break;
 	}
 
 	
@@ -142,7 +133,7 @@ bool CThread::join(unsigned long time)
 	CAutoLock locker(&m_mutex);
 
 	if (m_id == GetCurrentThreadId()) {
-		printf("Thread::wait: Thread tried to wait on itself");
+		printf("Thread::join: Thread tried to wait on itself");
 		return false;
 	}
 
@@ -159,10 +150,13 @@ bool CThread::join(unsigned long time)
 		ret = true;
 		break;
 	case WAIT_FAILED:
-		printf("Thread::wait: Thread wait failure");
+		printf("Thread::join: thread wait failure\n");
+		break;
+	case WAIT_TIMEOUT:
+		printf("Thread::join: thread wait timeout\n");
 		break;
 	case WAIT_ABANDONED:
-	case WAIT_TIMEOUT:
+	
 	default:
 		break;
 	}
@@ -184,14 +178,64 @@ bool CThread::join(unsigned long time)
 	return ret;
 }
 
-void CThread::wait(unsigned long time)
+bool CThread::wait(unsigned long time)
 {
-	WaitForSingleObject(m_hEvent, time);
+	CAutoLock locker(&m_mutex);
+	if (m_id != GetCurrentThreadId()) {
+		printf("Thread::wait: Thread tried to wait on others' threads");
+		return false;
+	}
+
+	if (!m_running || m_isInFinish) {
+		return false;
+	}
+	
+	if (!m_waitThread){
+		return true;
+	}
+	locker.unlock();
+
+	bool ret = false;
+	switch (WaitForSingleObject(m_hEvent, time)) {
+	case WAIT_OBJECT_0:
+		ret = true;
+		break;
+	case WAIT_FAILED:
+		printf("Thread::wait: Thread wait failure");
+		break;
+	case WAIT_ABANDONED:
+	case WAIT_TIMEOUT:
+	default:
+		break;
+	}
+	locker.relock();
+	m_waitThread = false;
+
+	return ret;
 }
 
-void CThread::notify()
+void CThread::setWait()
 {
-	SetEvent(m_hEvent);
+	CAutoLock locker(&m_mutex);
+	if (!m_running || m_isInFinish) {
+		return;
+	}
+	m_waitThread = true;
+}
+
+bool CThread::notify()
+{
+	CAutoLock locker(&m_mutex);
+	
+	if (GetCurrentThreadId() == m_id) {
+		return false;
+	}
+
+	if (!m_running || m_isInFinish) {
+		return false;
+	}
+
+	return SetEvent(m_hEvent) == TRUE;
 }
 
 void CThread::on_thread_finish(void *arg, bool lockAnyway)
@@ -213,9 +257,12 @@ void CThread::on_thread_finish(void *arg, bool lockAnyway)
 	thr->m_isInFinish = false;
 	if (!thr->m_waiters) {
 		CloseHandle(thr->m_hThread);
+		CloseHandle(thr->m_hEvent);
 		thr->m_hThread = 0;
+		thr->m_hEvent = 0;
 	}
 }
+
 bool CThread::isFinished() const
 {
 	CAutoLock locker(&m_mutex);
@@ -227,9 +274,20 @@ bool CThread::isRunning() const
 	CAutoLock locker(&m_mutex);
 	return m_running && !m_isInFinish;
 }
+
+bool CThread::isWaiting() const
+{
+	CAutoLock locker(&m_mutex);
+	if (!m_running || m_isInFinish)
+	{
+		return false;
+	}
+	return m_waitThread;
+}
+
 void CThread::exit(int retcode)
 {
 
 }
 
-
+END_NAMESPACE

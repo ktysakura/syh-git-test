@@ -1,8 +1,11 @@
 #if !defined(SAFE_VARIABLE_H__20180820)
-#define SAFE_VARIABLE_H__20180820
+#define	 SAFE_VARIABLE_H__20180820
 
+#include <global/base.h>
 #include "MutexLock.h"
 
+
+BEGIN_NAMESPACE
 
 template <typename T> class CSafeVariable
 {
@@ -46,6 +49,7 @@ template <typename T> const T CSafeVariable<T>::get(){
 
 	return val;
 }
-	
+
+END_NAMESPACE
 
 #endif //SAFE_VARIABLE_H__20180820

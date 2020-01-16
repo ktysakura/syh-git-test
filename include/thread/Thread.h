@@ -1,7 +1,11 @@
-#ifndef _THREAD_20200103_
+#if !defined(_THREAD_20200103_)
 #define _THREAD_20200103_
+#include <global/base.h>
 #include "AutoLock.h"
 
+BEGIN_NAMESPACE
+
+#define THREAD_EXIT_TIME 3000
 //class CThreadImpl;
 class CThread {
 public:
@@ -23,17 +27,20 @@ public:
 	virtual ~CThread();
 	bool isFinished() const;
 	bool isRunning() const;
+	bool isWaiting() const;
 	void exit(int retcode = 0);
-	void wait(unsigned long time = -1);
-	void notify();
-	bool join(unsigned long time = -1);
+	bool wait(unsigned long time = -1);
+	bool notify();
+	bool join(unsigned long time = THREAD_EXIT_TIME);
 	void start(Priority = InheritPriority);
+public:
+	void setWait();
 protected:
 	virtual void started() {}
 	virtual void run() = 0;
 	virtual void finished() {}
 	virtual void terminated() {}
-protected:
+
 private:
 
 #ifdef _WIN32
@@ -44,12 +51,14 @@ private:
 #else
 
 #endif
+protected:
+	bool m_waitThread;
 private:
 	mutable CMutexLock m_mutex;
 	bool m_running;
 	bool m_finished;
 	bool m_terminated;
-	bool m_isInFinish; //when in QThreadPrivate::finish
+	bool m_isInFinish;             //when in QThreadPrivate::finish
 	bool m_exited;
 	int m_returnCode;
 	int m_waiters;
@@ -59,5 +68,6 @@ private:
 	//CThreadImpl *p;
 };
 
+END_NAMESPACE
 
 #endif

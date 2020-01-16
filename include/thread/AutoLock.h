@@ -1,7 +1,10 @@
 #if !defined (AUTO_LOCK_H__20180820)
 #define AUTO_LOCK_H__20180820
 
+#include <global/base.h>
 #include "MutexLock.h"
+
+BEGIN_NAMESPACE
 
 
 class CAutoLock
@@ -48,5 +51,6 @@ private:
 	unsigned int val;
 };
 	
+END_NAMESPACE
 
 #endif //AUTO_LOCK_H__20180820

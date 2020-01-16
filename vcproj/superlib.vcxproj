@@ -23,6 +23,7 @@
     <ClCompile Include="..\src\thread\Thread.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\include\global\global.h" />
     <ClInclude Include="..\include\thread\AutoLock.h" />
     <ClInclude Include="..\include\thread\MutexLock.h" />
     <ClInclude Include="..\include\thread\SafeVariable.h" />
@@ -93,7 +94,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\include\thread</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include\thread;..\include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
