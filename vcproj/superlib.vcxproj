@@ -21,12 +21,14 @@
   <ItemGroup>
     <ClInclude Include="..\include\global\global.h" />
     <ClInclude Include="..\include\thread\AutoLock.h" />
-    <ClInclude Include="..\include\thread\MutexLock.h" />
+    <ClInclude Include="..\include\thread\Mutex.h" />
+    <ClInclude Include="..\include\thread\MutexPool.h" />
     <ClInclude Include="..\include\thread\SafeVariable.h" />
     <ClInclude Include="..\include\thread\Thread.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\thread\MutexLock.cpp" />
+    <ClCompile Include="..\src\thread\Mutex.cpp" />
+    <ClCompile Include="..\src\thread\MutexPool.cpp" />
     <ClCompile Include="..\src\thread\Thread.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

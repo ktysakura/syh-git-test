@@ -9,7 +9,7 @@ static void create_tls()
 {
 	if (current_thread_data_tls_index != TLS_OUT_OF_INDEXES)
 		return;
-	static CMutexLock mutex;
+	static CMutex mutex;
 	CAutoLock locker(&mutex);
 	current_thread_data_tls_index = TlsAlloc();
 }
@@ -22,7 +22,7 @@ static void free_tls()
 	}
 }
 
-unsigned int __stdcall CThread::on_thread_start(void *arg)
+unsigned int __stdcall CThread::on_thread_proc(void *arg)
 {
 	CThread *thr = reinterpret_cast<CThread *>(arg);
 	thr->started();
@@ -30,14 +30,16 @@ unsigned int __stdcall CThread::on_thread_start(void *arg)
 	on_thread_finish(arg);
 	return 0;
 }
+
 CThread::CThread()
 	:m_running(false), m_isInFinish(false), m_finished(false),
-	m_exited(false), m_returnCode(-1), m_stackSize(0), 
+	m_exited(false), m_returnCode(-1), m_waiters(0), m_stackSize(0), 
 	m_waitThread(false), m_priority(CThread::InheritPriority)
 {
 
 
 }
+
 CThread::~CThread()
 {
 	CAutoLock locker(&m_mutex);
@@ -52,6 +54,8 @@ CThread::~CThread()
 		printf("CThread: Destroyed while thread is still running");
 	}
 }
+
+
 
 void CThread::start(Priority priority)
 {
@@ -80,7 +84,7 @@ void CThread::start(Priority priority)
 		return;
 	}
 
-	m_hThread = (HANDLE)_beginthreadex(NULL, m_stackSize, on_thread_start,
+	m_hThread = (HANDLE)_beginthreadex(NULL, m_stackSize, on_thread_proc,
 		this, CREATE_SUSPENDED, &m_id);
 	if (!m_hThread) {
 		CloseHandle(m_hEvent);
@@ -172,7 +176,9 @@ bool CThread::join(unsigned long time)
 
 	if (m_finished && !m_waiters) {
 		CloseHandle(m_hThread);
+		CloseHandle(m_hEvent);
 		m_hThread = 0;
+		m_hEvent = 0;
 	}
 
 	return ret;
@@ -209,7 +215,7 @@ bool CThread::wait(unsigned long time)
 		break;
 	}
 	locker.relock();
-	m_waitThread = false;
+	
 
 	return ret;
 }
@@ -231,10 +237,10 @@ bool CThread::notify()
 		return false;
 	}
 
-	if (!m_running || m_isInFinish) {
+	if (!m_running || m_isInFinish || false == m_waitThread) {
 		return false;
 	}
-
+	m_waitThread = false;
 	return SetEvent(m_hEvent) == TRUE;
 }
 
@@ -288,6 +294,15 @@ bool CThread::isWaiting() const
 void CThread::exit(int retcode)
 {
 
+}
+int CThread::currentThreadId()
+{
+	return GetCurrentThreadId();
+}
+
+CThread::Priority CThread::priority() const
+{
+	return m_priority;
 }
 
 END_NAMESPACE

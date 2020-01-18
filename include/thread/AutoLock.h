@@ -2,7 +2,7 @@
 #define AUTO_LOCK_H__20180820
 
 #include <global/base.h>
-#include "MutexLock.h"
+#include "Mutex.h"
 
 BEGIN_NAMESPACE
 
@@ -10,7 +10,7 @@ BEGIN_NAMESPACE
 class CAutoLock
 {
 public:
-	inline CAutoLock(CMutexLock* mutex)
+	inline CAutoLock(CMutex* mutex)
 	{
 		if (mutex) {
 			mutex->lock();
@@ -42,9 +42,9 @@ public:
 		}
 	}
 
-	inline CMutexLock *mutex() const
+	inline CMutex *mutex() const
 	{
-		return reinterpret_cast<CMutexLock *>(val & ~1u);
+		return reinterpret_cast<CMutex *>(val & ~1u);
 	}
 
 private:

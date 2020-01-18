@@ -9,14 +9,14 @@
 BEGIN_NAMESPACE
 
 
-class CMutexLock
+class CMutex
 {
 public:
 	int lock();
     int unlock();
 	
-	CMutexLock();
-	virtual ~CMutexLock();
+	CMutex();
+	virtual ~CMutex();
 
 private:
 	CRITICAL_SECTION m_critical;

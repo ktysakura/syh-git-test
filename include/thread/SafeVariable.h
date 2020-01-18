@@ -2,7 +2,7 @@
 #define	 SAFE_VARIABLE_H__20180820
 
 #include <global/base.h>
-#include "MutexLock.h"
+#include "Mutex.h"
 
 
 BEGIN_NAMESPACE
@@ -19,7 +19,7 @@ public:
 
 private:
 	T m_val;
-	CMutexLock m_mutex;
+	CMutex m_mutex;
 };
 
 template <typename T> CSafeVariable<T>::CSafeVariable(){

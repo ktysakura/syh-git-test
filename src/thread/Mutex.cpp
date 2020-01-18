@@ -1,25 +1,25 @@
 /*Mutex.cpp: create automatically by makeclass at 2013-07-12*/
-#include "MutexLock.h"
+#include "Mutex.h"
 
 BEGIN_NAMESPACE
 
-CMutexLock::CMutexLock()
+CMutex::CMutex()
 {
 	::InitializeCriticalSectionAndSpinCount(&m_critical, 4000);
 }
 
-CMutexLock::~CMutexLock()
+CMutex::~CMutex()
 {
 	::DeleteCriticalSection(&m_critical);
 }
 
-int CMutexLock::lock()
+int CMutex::lock()
 {
 	::EnterCriticalSection(&m_critical);
 	return 0;
 }
 
-int CMutexLock::unlock()
+int CMutex::unlock()
 {
 	::LeaveCriticalSection(&m_critical);
 	return 0;

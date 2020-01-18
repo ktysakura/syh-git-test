@@ -20,19 +20,22 @@ public:
 		InheritPriority
 	};
 public:
-	//static int currentThreadId();
-	//void setPriority(Priority priority);
-	//Priority priority() const;
+	
 	CThread();
 	virtual ~CThread();
 	bool isFinished() const;
 	bool isRunning() const;
 	bool isWaiting() const;
+	Priority priority() const;
 	void exit(int retcode = 0);
 	bool wait(unsigned long time = -1);
 	bool notify();
 	bool join(unsigned long time = THREAD_EXIT_TIME);
 	void start(Priority = InheritPriority);
+public:
+	static int currentThreadId();
+	//void setPriority(Priority priority);
+	
 public:
 	void setWait();
 protected:
@@ -44,7 +47,7 @@ protected:
 private:
 
 #ifdef _WIN32
-	static unsigned int __stdcall on_thread_start(void *arg);
+	static unsigned int __stdcall on_thread_proc(void *arg);
 	static void on_thread_finish(void *arg, bool lockAnyway = true);
 	HANDLE m_hThread;
 	HANDLE m_hEvent;
@@ -54,7 +57,7 @@ private:
 protected:
 	bool m_waitThread;
 private:
-	mutable CMutexLock m_mutex;
+	mutable CMutex m_mutex;
 	bool m_running;
 	bool m_finished;
 	bool m_terminated;
