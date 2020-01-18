@@ -20,32 +20,32 @@ public:
 		InheritPriority
 	};
 public:
-	
 	CThread();
 	virtual ~CThread();
 	bool isFinished() const;
 	bool isRunning() const;
 	bool isWaiting() const;
 	Priority priority() const;
-	void exit(int retcode = 0);
-	bool wait(unsigned long time = -1);
-	bool notify();
-	bool join(unsigned long time = THREAD_EXIT_TIME);
 	void start(Priority = InheritPriority);
+	void terminate();
+	bool wakeUp();
+	bool join(unsigned long time = THREAD_EXIT_TIME);
+	void exit(int retcode = 0);
+	int idealThreadCount();
 public:
 	static int currentThreadId();
-	//void setPriority(Priority priority);
-	
+	static void sleep(unsigned long secs);
+	static void msleep(unsigned long msecs);
+	static void usleep(unsigned long usecs);
 public:
 	void setWait();
 protected:
-	virtual void started() {}
 	virtual void run() = 0;
+	virtual void started() {}
 	virtual void finished() {}
-	virtual void terminated() {}
-
-private:
-
+protected:
+	bool wait(unsigned long time = -1);
+	void setTerminationEnabled(bool enabled);
 #ifdef _WIN32
 	static unsigned int __stdcall on_thread_proc(void *arg);
 	static void on_thread_finish(void *arg, bool lockAnyway = true);
@@ -60,7 +60,8 @@ private:
 	mutable CMutex m_mutex;
 	bool m_running;
 	bool m_finished;
-	bool m_terminated;
+	bool m_terminationEnabled;
+	bool m_terminatePending;
 	bool m_isInFinish;             //when in QThreadPrivate::finish
 	bool m_exited;
 	int m_returnCode;

@@ -25,10 +25,34 @@ static void free_tls()
 unsigned int __stdcall CThread::on_thread_proc(void *arg)
 {
 	CThread *thr = reinterpret_cast<CThread *>(arg);
+	thr->setTerminationEnabled(false);
+	Sleep(3000);
 	thr->started();
+	thr->setTerminationEnabled(true);
 	thr->run();
 	on_thread_finish(arg);
 	return 0;
+}
+
+void CThread::on_thread_finish(void *arg, bool lockAnyway)
+{
+	CThread *thr = reinterpret_cast<CThread *>(arg);
+	CAutoLock locker(lockAnyway ? &thr->m_mutex : 0);
+	thr->m_isInFinish = true;
+	thr->m_priority = CThread::InheritPriority;
+	locker.unlock();
+	thr->finished();
+	locker.relock();
+
+	thr->m_running = false;
+	thr->m_finished = true;
+	thr->m_isInFinish = false;
+	if (!thr->m_waiters) {
+		CloseHandle(thr->m_hThread);
+		CloseHandle(thr->m_hEvent);
+		thr->m_hThread = 0;
+		thr->m_hEvent = 0;
+	}
 }
 
 CThread::CThread()
@@ -51,7 +75,7 @@ CThread::~CThread()
 	}
 
 	if (m_running && !m_finished) {
-		printf("CThread: Destroyed while thread is still running");
+		printf("CThread: Destroyed while thread is still running\n");
 	}
 }
 
@@ -73,7 +97,8 @@ void CThread::start(Priority priority)
 
 	m_running = true;
 	m_finished = false;
-	m_terminated = false;
+	m_terminationEnabled = false;
+	m_terminatePending = false;
 	m_exited = false;
 	m_returnCode = 0;
 	
@@ -88,6 +113,7 @@ void CThread::start(Priority priority)
 		this, CREATE_SUSPENDED, &m_id);
 	if (!m_hThread) {
 		CloseHandle(m_hEvent);
+		m_hEvent = 0;
 		m_running = false;
 		m_finished = true;
 		return;
@@ -127,8 +153,34 @@ void CThread::start(Priority priority)
 		printf("thread::start: Failed to set thread priority\n");
 	}
 
-	if (!ResumeThread(m_hThread)) {
+	if (ResumeThread(m_hThread) == (DWORD)-1) {
 		printf("thread::start: Failed to resume new thread\n");
+	}
+}
+void CThread::terminate()
+{
+	CAutoLock locker(&m_mutex);
+	if (!m_running) {
+		return;
+	}
+
+	if (!m_terminationEnabled) {
+		m_terminatePending = true;
+		return;
+	}
+	TerminateThread(m_hThread, 0);
+	on_thread_finish(this, false);
+
+}
+
+void CThread::setTerminationEnabled(bool enabled)
+{
+	CAutoLock locker(&m_mutex);
+	m_terminationEnabled = enabled;
+	if (enabled && m_terminatePending) {
+		on_thread_finish(this, false);
+		locker.unlock();
+		_endthreadex(0);
 	}
 }
 
@@ -137,7 +189,7 @@ bool CThread::join(unsigned long time)
 	CAutoLock locker(&m_mutex);
 
 	if (m_id == GetCurrentThreadId()) {
-		printf("Thread::join: Thread tried to wait on itself");
+		printf("Thread::join: Thread tried to wait on itself\n");
 		return false;
 	}
 
@@ -170,7 +222,6 @@ bool CThread::join(unsigned long time)
 
 	if (ret && !m_finished) {
 		// thread was terminated by someone else
-		m_terminated = true;
 		on_thread_finish(this, false);
 	}
 
@@ -187,11 +238,6 @@ bool CThread::join(unsigned long time)
 bool CThread::wait(unsigned long time)
 {
 	CAutoLock locker(&m_mutex);
-	if (m_id != GetCurrentThreadId()) {
-		printf("Thread::wait: Thread tried to wait on others' threads");
-		return false;
-	}
-
 	if (!m_running || m_isInFinish) {
 		return false;
 	}
@@ -207,7 +253,7 @@ bool CThread::wait(unsigned long time)
 		ret = true;
 		break;
 	case WAIT_FAILED:
-		printf("Thread::wait: Thread wait failure");
+		printf("Thread::wait: Thread wait failure\n");
 		break;
 	case WAIT_ABANDONED:
 	case WAIT_TIMEOUT:
@@ -220,19 +266,10 @@ bool CThread::wait(unsigned long time)
 	return ret;
 }
 
-void CThread::setWait()
+bool CThread::wakeUp()
 {
 	CAutoLock locker(&m_mutex);
-	if (!m_running || m_isInFinish) {
-		return;
-	}
-	m_waitThread = true;
-}
 
-bool CThread::notify()
-{
-	CAutoLock locker(&m_mutex);
-	
 	if (GetCurrentThreadId() == m_id) {
 		return false;
 	}
@@ -244,29 +281,20 @@ bool CThread::notify()
 	return SetEvent(m_hEvent) == TRUE;
 }
 
-void CThread::on_thread_finish(void *arg, bool lockAnyway)
+void CThread::setWait()
 {
-	CThread *thr = reinterpret_cast<CThread *>(arg);
-	CAutoLock locker(lockAnyway ? &thr->m_mutex : 0);
-	thr->m_isInFinish = true;
-	thr->m_priority = CThread::InheritPriority;
-	bool terminated = thr->m_terminated;
-	locker.unlock();
-	if (terminated) {
-		thr->terminated();
+	CAutoLock locker(&m_mutex);
+	if (!m_running || m_isInFinish) {
+		return;
 	}
-	thr->finished();
-	locker.relock();
-	thr->m_terminated = false;
-	thr->m_running = false;
-	thr->m_finished = true;
-	thr->m_isInFinish = false;
-	if (!thr->m_waiters) {
-		CloseHandle(thr->m_hThread);
-		CloseHandle(thr->m_hEvent);
-		thr->m_hThread = 0;
-		thr->m_hEvent = 0;
-	}
+	m_waitThread = true;
+}
+
+int CThread::idealThreadCount()
+{
+	SYSTEM_INFO sysinfo;
+	GetSystemInfo(&sysinfo);
+	return sysinfo.dwNumberOfProcessors;
 }
 
 bool CThread::isFinished() const
@@ -295,14 +323,31 @@ void CThread::exit(int retcode)
 {
 
 }
-int CThread::currentThreadId()
-{
-	return GetCurrentThreadId();
-}
 
 CThread::Priority CThread::priority() const
 {
 	return m_priority;
+}
+
+
+int CThread::currentThreadId()
+{
+	return static_cast<int>(GetCurrentThreadId());
+}
+
+void CThread::sleep(unsigned long secs)
+{
+	::Sleep(secs * 1000);
+}
+
+void CThread::msleep(unsigned long msecs)
+{
+	::Sleep(msecs);
+}
+
+void CThread::usleep(unsigned long usecs)
+{
+	::Sleep((usecs / 1000) + 1);
 }
 
 END_NAMESPACE

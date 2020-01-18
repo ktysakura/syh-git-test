@@ -49,5 +49,30 @@
 #endif /* __cplusplus */
 
 
+#ifdef _WIN32
+#	if defined(_USRDLL)	/*_USRDLL*/
+#		if defined(BUILD_CORE_LIB)
+#			define CORE_EXPORT __declspec(dllexport)
+#		else
+#			define CORE_EXPORT __declspec(dllimport)
+#		endif
+#	elif defined(_LIB)	/*_LIB*/
+#		define CORE_EXPORT 
+#	else		      /*_MBCS*/ 
+#		define CORE_EXPORT
+#	endif
+#else /*win32*/
+#	define CORE_EXPORT 
+#endif/*linux*/
 
+
+
+inline void my_noop(void) {}
+
+#if defined(_DEBUG)
+#	define ASSERT_X(cond, where, what) ((!(cond)) ? assert_x(where, what, __FILE__, __LINE__) : my_noop())
+#else
+#    define Q_ASSERT_X(cond, where, what) do { } while ((false) && (cond))
+#endif
+CORE_EXPORT void assert_x(const char *where, const char *what, const char *file, int line);
 #endif

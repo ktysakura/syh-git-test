@@ -3,7 +3,8 @@
 
 BEGIN_NAMESPACE
 
-CMutex::CMutex()
+CMutex::CMutex(RecursionMode mode)
+	:m_recursionMode(mode)
 {
 	::InitializeCriticalSectionAndSpinCount(&m_critical, 4000);
 }

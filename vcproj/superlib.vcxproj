@@ -27,6 +27,7 @@
     <ClInclude Include="..\include\thread\Thread.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\global\global.cpp" />
     <ClCompile Include="..\src\thread\Mutex.cpp" />
     <ClCompile Include="..\src\thread\MutexPool.cpp" />
     <ClCompile Include="..\src\thread\Thread.cpp" />

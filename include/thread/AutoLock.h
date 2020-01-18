@@ -12,12 +12,11 @@ class CAutoLock
 public:
 	inline CAutoLock(CMutex* mutex)
 	{
-		if (mutex) {
+		val = reinterpret_cast<unsigned int>(mutex);
+		ASSERT_X((val & 1u) == 0u, "CAutoLock", "CMutex pointer is misaligned");
+		if (LIKELY(mutex)) {
 			mutex->lock();
-			val = (reinterpret_cast<unsigned int>(mutex) | 1u);
-		}
-		else {
-			val = 0;
+			val = (val | 1u);
 		}
 	}
 

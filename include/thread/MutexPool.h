@@ -1,29 +1,35 @@
 #if !defined(_MUTEX_POOL_H_20200118_)
 #define _MUTEX_POOL_H_20200118_
-#include 
+#include "Mutex.h"
+#include "global/base.h"
+
+
+BEGIN_NAMESPACE
+
 class  CMutexPool
 {
 public:
-	explicit CMutexPool(int size = 131);
+	explicit CMutexPool(CMutex::RecursionMode mode = CMutex::NonRecursive, int size = 131);
 	~CMutexPool();
-
+	
 	inline CMutex *get(const void *address) {
-		int index = uint(quintptr(address)) % mutexes.count();
-		QMutex *m = mutexes[index];
+		int index = uintptr_t(address) % mutexes.size();
+		CMutex *m = mutexes[index];
 		if (m)
 			return m;
 		else
 			return createMutex(index);
 	}
-	static QMutexPool *instance();
-	static QMutex *globalInstanceGet(const void *address);
+	static CMutexPool *instance();
+	static CMutex *globalInstanceGet(const void *address);
 
 private:
-	QMutex *createMutex(int index);
-	QVarLengthArray<QAtomicPointer<QMutex>, 131> mutexes;
-	QMutex::RecursionMode recursionMode;
+	CMutex *createMutex(int index);
+	vector<CMutex*> mutexes;
+	CMutex::RecursionMode recursionMode;
 };
-
+extern CMutexPool *global_mutexpool;
+END_NAMESPACE
 
 #endif
 

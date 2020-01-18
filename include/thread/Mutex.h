@@ -12,14 +12,16 @@ BEGIN_NAMESPACE
 class CMutex
 {
 public:
+	enum RecursionMode { NonRecursive, Recursive };
 	int lock();
     int unlock();
 	
-	CMutex();
+	CMutex(RecursionMode mode = NonRecursive);
 	virtual ~CMutex();
 
 private:
 	CRITICAL_SECTION m_critical;
+	RecursionMode m_recursionMode;
 };
 	
 END_NAMESPACE
