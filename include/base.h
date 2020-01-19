@@ -4,5 +4,6 @@
 #include "thread/base.h"
 #include "xml/base.h"
 #include "thrid_party/base.h"
+#include "json/base.h"
 USE_NAMESPACE;
 #endif

@@ -32,8 +32,18 @@ public:
 	bool join(unsigned long time = THREAD_EXIT_TIME);
 	void exit(int retcode = 0);
 	int idealThreadCount();
+protected:
+#ifdef _WIN32
+	static unsigned int __stdcall on_thread_proc(void *arg);
+	static void on_thread_finish(void *arg, bool lockAnyway = true);
+	HANDLE m_hThread;
+	HANDLE m_hEvent;
+#else
+	pthread_t m_threadId;
+#endif
 public:
 	static int currentThreadId();
+	void yieldCurrentThread();
 	static void sleep(unsigned long secs);
 	static void msleep(unsigned long msecs);
 	static void usleep(unsigned long usecs);
@@ -46,14 +56,6 @@ protected:
 protected:
 	bool wait(unsigned long time = -1);
 	void setTerminationEnabled(bool enabled);
-#ifdef _WIN32
-	static unsigned int __stdcall on_thread_proc(void *arg);
-	static void on_thread_finish(void *arg, bool lockAnyway = true);
-	HANDLE m_hThread;
-	HANDLE m_hEvent;
-#else
-
-#endif
 protected:
 	bool m_waitThread;
 private:

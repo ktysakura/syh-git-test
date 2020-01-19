@@ -79,8 +79,6 @@ CThread::~CThread()
 	}
 }
 
-
-
 void CThread::start(Priority priority)
 {
 	CAutoLock locker(&m_mutex);
@@ -148,7 +146,6 @@ void CThread::start(Priority priority)
 		break;
 	}
 
-	
 	if (!SetThreadPriority(m_hThread, prio)) {
 		printf("thread::start: Failed to set thread priority\n");
 	}
@@ -157,6 +154,7 @@ void CThread::start(Priority priority)
 		printf("thread::start: Failed to resume new thread\n");
 	}
 }
+
 void CThread::terminate()
 {
 	CAutoLock locker(&m_mutex);
@@ -261,7 +259,6 @@ bool CThread::wait(unsigned long time)
 		break;
 	}
 	locker.relock();
-	
 
 	return ret;
 }
@@ -329,6 +326,10 @@ CThread::Priority CThread::priority() const
 	return m_priority;
 }
 
+void CThread::yieldCurrentThread()
+{
+	SwitchToThread();
+}
 
 int CThread::currentThreadId()
 {
