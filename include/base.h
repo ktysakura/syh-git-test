@@ -5,5 +5,6 @@
 #include "xml/base.h"
 #include "thrid_party/base.h"
 #include "json/base.h"
+#include "zip/base.h"
 USE_NAMESPACE;
 #endif

@@ -19,12 +19,14 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Dialog.h" />
+    <ClInclude Include="test_compress.h" />
+    <ClInclude Include="test_other.h" />
     <ClInclude Include="thread_test.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Dialog.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="test_compress.cpp" />
+    <ClCompile Include="test_other.cpp" />
     <ClCompile Include="thread_test.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

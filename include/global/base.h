@@ -3,4 +3,5 @@
 #include "global.h"
 #include "inc.h"
 #include "compilerdetection.h"
+#include "common.h"
 #endif
