@@ -15,11 +15,13 @@
 #include <iostream>
 #include <time.h>
 #include <assert.h>
+#include <sys/timeb.h>
 #ifdef _WIN32
 #include <windows.h>
 #include <process.h>
 #else
 #include <pthread.h>
+#include <sys/time.h>
 #endif
 using namespace std;
 #endif //  // ! _INC_H_20200118_

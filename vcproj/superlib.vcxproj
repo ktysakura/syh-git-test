@@ -25,12 +25,14 @@
     <ClInclude Include="..\include\thread\MutexPool.h" />
     <ClInclude Include="..\include\thread\SafeVariable.h" />
     <ClInclude Include="..\include\thread\Thread.h" />
+    <ClInclude Include="..\include\time\DateTime.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\global\global.cpp" />
     <ClCompile Include="..\src\thread\Mutex.cpp" />
     <ClCompile Include="..\src\thread\MutexPool.cpp" />
     <ClCompile Include="..\src\thread\Thread.cpp" />
+    <ClCompile Include="..\src\time\DateTime.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
@@ -97,7 +99,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\include\thread;..\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include\thread;..\include;..\include\time</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>

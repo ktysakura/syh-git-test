@@ -258,8 +258,7 @@ bool CThread::wait(unsigned long time)
 	default:
 		break;
 	}
-	locker.relock();
-
+	
 	return ret;
 }
 
