@@ -1,13 +1,11 @@
-lib\release
-lib\debug
+lib\release\*.pdb
+lib\debug\*.pdb
 obj
 *.ncb
 *.suo
 *.user
 *.so
-*.dll
 *.exp
-*.lib
 *.ilk
 *.pdb
 *.manifest
