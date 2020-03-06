@@ -4,5 +4,5 @@
 #include "Mutex.h"
 #include "Thread.h"
 #include "SafeVariable.h"
-#pragma comment(lib, "superlib")
+#pragma comment(lib, "thread")
 #endif

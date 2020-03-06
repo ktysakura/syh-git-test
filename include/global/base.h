@@ -4,4 +4,5 @@
 #include "inc.h"
 #include "compilerdetection.h"
 #include "common.h"
+#include "stdint.h"
 #endif

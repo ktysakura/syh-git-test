@@ -10,3 +10,4 @@ obj
 *.pdb
 *.manifest
 *.aps
+/include/global/stdint.h
